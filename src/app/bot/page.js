@@ -13,7 +13,6 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 import apiService from "../../../src/services/axiosService";
 import config from "../../../src/services/config";
 import ChatPanel from './components/ChatPanel';
-import DisplayPanel from './components/DisplayPanel';
 import Sidebar from './components/Sidebar';
 import BotNavbar from './components/BotNavbar';
 import { useRouter } from 'next/navigation';
@@ -42,6 +41,7 @@ export default function ChatBot() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [progressMessage, setProgressMessage] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -273,124 +273,194 @@ export default function ChatBot() {
     }
 
     try {
-      const response = await apiService({
-        method: "post",
-        url: "/r2r/chat",
-        customBaseUrl: config.FINANCE_AI_Base_url,
-        data: {
+      setProgressMessage("Initializing request...");
+      
+      const response = await fetch(`${config.FINANCE_AI_Base_url}/r2r/chat/stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
           question: userText,
           chat_context: chat_context
-        }
+        })
       });
-      const data = response.data;
 
-      const aiText = data.answer;
-      const chartConfig = data.metadata?.chartConfig || null;
-
-      // Update UI state immediately — prioritise chart when available
-      if (data.tableData) {
-        setCurrentTable(data.tableData);
-        setActiveView(chartConfig ? 'chart' : 'table');
-      }
-      if (chartConfig) {
-        setCurrentChart(chartConfig);
-        setActiveView('chart');
-      }
-      if (data.chartData && !chartConfig) {
-        setCurrentChart(data.chartData);
-        setActiveView('chart');
-      }
-      if (data.reportData) {
-        setCurrentReport(data.reportData);
-        setActiveView('report');
-      }
-      if (data.dashboardData) {
-        setCurrentDashboard(data.dashboardData);
-        setActiveView('dashboard');
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let partialChunk = "";
+      let aiResponseText = "";
+      
+      // Add a placeholder message for the incoming assistant response
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: aiText,
-        tableData: data.tableData,
-        chartData: chartConfig || data.chartData,
-        reportData: data.reportData,
-        dashboardData: data.dashboardData,
-        metadata: data.metadata || null
+        content: '',
+        isStreaming: true
       }]);
 
-      // --- PERSISTENT SAVE ---
-      if (activeChatId) {
-        try {
-          // Save User Message
-          await apiService({
-            method: "post",
-            url: "/r2r/chats/message",
-            customBaseUrl: config.FINANCE_AI_Base_url,
-            data: { chat_id: activeChatId, role: 'user', content: userText }
-          });
-          // Save AI Message with Data
-          await apiService({
-            method: "post",
-            url: "/r2r/chats/message",
-            customBaseUrl: config.FINANCE_AI_Base_url,
-            data: {
-              chat_id: activeChatId,
-              role: 'assistant',
-              content: aiText,
-              tableData: data.tableData,
-              chartData: chartConfig || data.chartData,
-              reportData: data.reportData,
-              dashboardData: data.dashboardData
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunkText = decoder.decode(value, { stream: true });
+        partialChunk += chunkText;
+
+        // Process line-by-line SSE data
+        const lines = partialChunk.split("\n");
+        partialChunk = lines.pop(); // Keep incomplete last line
+
+        for (const line of lines) {
+          const cleaned = line.trim();
+          if (!cleaned.startsWith("data: ")) continue;
+          
+          try {
+            const data = JSON.parse(cleaned.slice(6));
+            
+            if (data.type === "step") {
+              setProgressMessage(data.message);
+            } else if (data.type === "token") {
+              aiResponseText += data.text;
+              // Update the streaming assistant message content
+              setMessages(prev => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+                if (last && last.role === 'assistant') {
+                  last.content = aiResponseText;
+                }
+                return updated;
+              });
+            } else if (data.type === "result") {
+              // Retrieve final payload metadata
+              const chartConfig = data.chartData || null;
+              
+              // Remove streaming flag and update final fields
+              setMessages(prev => {
+                const updated = [...prev];
+                const last = updated[updated.length - 1];
+                if (last && last.role === 'assistant') {
+                  last.content = aiResponseText;
+                  last.tableData = data.tableData;
+                  last.chartData = chartConfig;
+                  last.reportData = data.reportData;
+                  last.tools_used = data.tools_used;
+                  last.metadata = {
+                    model: data.model_name || "mistral-medium-2505",
+                    chartConfig: chartConfig
+                  };
+                  delete last.isStreaming;
+                }
+                return updated;
+              });
+
+              // Update data panels
+              if (data.tableData) {
+                setCurrentTable(data.tableData);
+                setActiveView(chartConfig ? 'chart' : 'table');
+              }
+              if (chartConfig) {
+                setCurrentChart(chartConfig);
+                setActiveView('chart');
+              }
+              if (data.reportData) {
+                setCurrentReport(data.reportData);
+                setActiveView('report');
+              }
+
+              // Save messages to history
+              if (activeChatId) {
+                try {
+                  // User Message
+                  await apiService({
+                    method: "post",
+                    url: "/r2r/chats/message",
+                    customBaseUrl: config.FINANCE_AI_Base_url,
+                    data: { chat_id: activeChatId, role: 'user', content: userText }
+                  });
+                  // AI Message
+                  await apiService({
+                    method: "post",
+                    url: "/r2r/chats/message",
+                    customBaseUrl: config.FINANCE_AI_Base_url,
+                    data: {
+                      chat_id: activeChatId,
+                      role: 'assistant',
+                      content: aiResponseText,
+                      tableData: data.tableData,
+                      chartData: chartConfig,
+                      reportData: data.reportData,
+                      tools_used: data.tools_used
+                    }
+                  });
+
+                  // Auto-rename New Chat sessions
+                  const activeChat = chats.find(c => c.id === activeChatId);
+                  if (activeChat && activeChat.title === "New Chat") {
+                    const newTitle = userText.length > 25 ? userText.substring(0, 25) + "..." : userText;
+                    await handleRenameChat(activeChatId, newTitle);
+                  }
+                } catch (saveErr) {
+                  console.error("Error saving streaming response to history:", saveErr);
+                }
+              }
+
+              currentActive.push(`Ai: ${aiResponseText}`);
+              if (currentActive.length >= 20) {
+                try {
+                  const sumRes = await apiService({
+                    method: "post",
+                    url: "/r2r/summarize",
+                    customBaseUrl: config.FINANCE_AI_Base_url,
+                    data: { messages: currentActive }
+                  });
+                  const newSummary = sumRes.data.summary;
+                  const newSummariesList = [...chatSummaries, newSummary].slice(-2);
+                  setChatSummaries(newSummariesList);
+                  setActiveMessages([]);
+                  localStorage.setItem('finance_ai_summaries', JSON.stringify(newSummariesList));
+                  localStorage.setItem('finance_ai_active', JSON.stringify([]));
+                } catch (sumErr) {
+                  console.error("Summarization error:", sumErr);
+                  setActiveMessages(currentActive);
+                  localStorage.setItem('finance_ai_active', JSON.stringify(currentActive));
+                }
+              } else {
+                setActiveMessages(currentActive);
+                localStorage.setItem('finance_ai_active', JSON.stringify(currentActive));
+              }
+            } else if (data.type === "error") {
+              throw new Error(data.message);
             }
-          });
-
-          // Automatically rename chat if it is currently named "New Chat"
-          const activeChat = chats.find(c => c.id === activeChatId);
-          if (activeChat && activeChat.title === "New Chat") {
-            const newTitle = userText.length > 25 ? userText.substring(0, 25) + "..." : userText;
-            await handleRenameChat(activeChatId, newTitle);
+          } catch (e) {
+            console.warn("JSON parse error on SSE line:", e, cleaned);
           }
-        } catch (saveErr) {
-          console.error("Error saving to history:", saveErr);
         }
       }
-
-      currentActive.push(`Ai: ${aiText}`);
-
-      if (currentActive.length >= 20) {
-        try {
-          const sumRes = await apiService({
-            method: "post",
-            url: "/r2r/summarize",
-            customBaseUrl: config.FINANCE_AI_Base_url,
-            data: { messages: currentActive }
-          });
-          const newSummary = sumRes.data.summary;
-          const newSummariesList = [...chatSummaries, newSummary].slice(-2);
-          setChatSummaries(newSummariesList);
-          setActiveMessages([]);
-          localStorage.setItem('finance_ai_summaries', JSON.stringify(newSummariesList));
-          localStorage.setItem('finance_ai_active', JSON.stringify([]));
-        } catch (sumErr) {
-          console.error("Summarization Error:", sumErr);
-          setActiveMessages(currentActive);
-          localStorage.setItem('finance_ai_active', JSON.stringify(currentActive));
-        }
-      } else {
-        setActiveMessages(currentActive);
-        localStorage.setItem('finance_ai_active', JSON.stringify(currentActive));
-      }
-
     } catch (error) {
-      console.error("Chat Error Detail:", error);
-      const errorMsg = error.message || (typeof error === 'string' ? error : "Unknown error");
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `I'm sorry, I encountered an error connecting to the brain: ${errorMsg}.`
-      }]);
+      console.error("Chat streaming error:", error);
+      const errorMsg = error.message || "Unknown error occurred.";
+      // Replace last placeholder with error or append
+      setMessages(prev => {
+        const updated = [...prev];
+        const last = updated[updated.length - 1];
+        if (last && last.role === 'assistant' && last.content === '') {
+          last.content = `I'm sorry, I encountered an error connecting to the brain: ${errorMsg}`;
+          delete last.isStreaming;
+        } else {
+          updated.push({
+            role: 'assistant',
+            content: `I'm sorry, I encountered an error connecting to the brain: ${errorMsg}`
+          });
+        }
+        return updated;
+      });
     } finally {
       setLoading(false);
+      setProgressMessage('');
     }
   };
 
@@ -468,16 +538,7 @@ export default function ChatBot() {
             isSynced={isSynced}
             onShowData={handleShowData}
             currentUser={currentUser}
-          />
-
-          {/* Right Panel: Data Display Section */}
-          <DisplayPanel
-            activeView={activeView}
-            setActiveView={setActiveView}
-            currentTable={currentTable}
-            currentChart={currentChart}
-            currentReport={currentReport}
-            currentDashboard={currentDashboard}
+            progressMessage={progressMessage}
           />
         </Box>
       </Box>

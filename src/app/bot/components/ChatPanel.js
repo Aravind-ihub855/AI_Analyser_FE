@@ -10,8 +10,10 @@ import {
   IconButton,
   CircularProgress,
   Chip,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material';
+import SyncIcon from '@mui/icons-material/Sync';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import PersonIcon from '@mui/icons-material/Person';
@@ -21,11 +23,10 @@ import PublicIcon from '@mui/icons-material/Public';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const TokenBadge = ({ metadata }) => {
-  if (!metadata) return null;
-  const { model, token_usage } = metadata;
+const TokenBadge = ({ metadata, tools_used }) => {
+  if (!metadata && (!tools_used || tools_used.length === 0)) return null;
+  const { model, token_usage } = metadata || {};
   const total = token_usage?.total_tokens;
-  if (!model && !total) return null;
 
   return (
     <Box sx={{
@@ -70,6 +71,22 @@ const TokenBadge = ({ metadata }) => {
           />
         </Tooltip>
       )}
+      {tools_used && tools_used.map((tool, idx) => (
+        <Chip
+          key={idx}
+          label={tool}
+          size="small"
+          sx={{
+            fontSize: '9px',
+            height: '18px',
+            bgcolor: '#f1f5f9',
+            color: '#475569',
+            border: '1px solid #cbd5e1',
+            fontWeight: 500,
+            '& .MuiChip-label': { px: 0.75 }
+          }}
+        />
+      ))}
     </Box>
   );
 };
@@ -90,7 +107,7 @@ const ChatMessage = ({ message, onShowData }) => {
         display: 'flex',
         flexDirection: isBot ? 'row' : 'row-reverse',
         alignItems: 'flex-start',
-        maxWidth: '85%'
+        maxWidth: '95%'
       }}>
         <Avatar sx={{
           bgcolor: isBot ? 'primary.main' : '#f1f5f9',
@@ -141,12 +158,44 @@ const ChatMessage = ({ message, onShowData }) => {
             <div style={{ wordBreak: 'break-word', fontSize: '13px' }}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
             </div>
-            {isBot && hasData && !message.content.toLowerCase().startsWith("i'm sorry, i encountered") && (
-              <Box sx={{ mt: 1, pt: 0.75, borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} />
-                <Typography sx={{ fontSize: '10px', color: '#64748b', fontWeight: 500 }}>
-                  Data loaded in Analytics panel
-                </Typography>
+            {isBot && message.tableData && message.tableData.headers && (
+              <Box sx={{ 
+                mt: 1.5, 
+                overflowX: 'auto', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                bgcolor: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                maxWidth: '100%',
+                '&::-webkit-scrollbar': { height: '6px' },
+                '&::-webkit-scrollbar-track': { background: 'transparent' },
+                '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '10px' }
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', fontFamily: 'inherit' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                      {message.tableData.headers.map((h, i) => (
+                        <th key={i} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+                          {h.replace(/_/g, ' ').toUpperCase()}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {message.tableData.rows.map((row, ri) => (
+                      <tr key={ri} style={{ 
+                        borderBottom: ri === message.tableData.rows.length - 1 ? 'none' : '1px solid #f1f5f9',
+                        backgroundColor: ri % 2 === 0 ? '#ffffff' : '#f8fafc'
+                      }}>
+                        {row.map((val, ci) => (
+                          <td key={ci} style={{ padding: '8px 10px', color: '#475569', whiteSpace: 'nowrap' }}>
+                            {val}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </Box>
             )}
           </Paper>
@@ -160,8 +209,8 @@ const ChatMessage = ({ message, onShowData }) => {
             textAlign: isBot ? 'left' : 'right'
           }}>
           </Typography>
-          {/* Token Usage Badge — only for AI messages */}
-          {isBot && <TokenBadge metadata={message.metadata} />}
+          {/* Token Usage & Tools Badge — only for AI messages */}
+          {isBot && <TokenBadge metadata={message.metadata} tools_used={message.tools_used} />}
         </Box>
       </Box>
     </Box>
@@ -246,7 +295,8 @@ const ChatPanel = ({
   syncing,
   isSynced,
   onShowData,
-  currentUser
+  currentUser,
+  progressMessage
 }) => {
   return (
     <Box sx={{
@@ -281,17 +331,50 @@ const ChatPanel = ({
             </Typography>
           )}
         </Box>
-        {syncing && (
-          <Box sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
-            <CircularProgress size={12} sx={{ mr: 1 }} />
-            <Typography variant="caption" sx={{ fontSize: '11px', fontWeight: 600 }}>Syncing Database...</Typography>
-          </Box>
-        )}
-        {!syncing && isSynced && (
-          <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, fontSize: '11px', display: 'flex', alignItems: 'center' }}>
-            Synced ✓
-          </Typography>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {syncing ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', color: 'primary.main', gap: 1 }}>
+              <CircularProgress size={14} sx={{ color: 'primary.main' }} />
+              <Typography variant="caption" sx={{ fontSize: '11px', fontWeight: 600, color: 'text.secondary' }}>
+                Syncing Database...
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {isSynced && (
+                <Typography variant="caption" sx={{ color: '#166534', fontWeight: 600, fontSize: '11px', display: 'flex', alignItems: 'center', mr: 0.5 }}>
+                  Synced ✓
+                </Typography>
+              )}
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleSync}
+                startIcon={<SyncIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  py: 0.5,
+                  px: 1.5,
+                  borderRadius: '8px',
+                  borderColor: '#cbd5e1',
+                  color: '#475569',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    backgroundColor: '#f8fafc',
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              >
+                Sync DB
+              </Button>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Persona Banner */}
@@ -316,7 +399,9 @@ const ChatPanel = ({
         {loading && (
           <Box sx={{ display: 'flex', alignItems: 'center', ml: 6, mb: 2 }}>
             <CircularProgress size={16} sx={{ mr: 1.5, color: 'primary.main' }} />
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>Agent is thinking...</Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: '0.015em' }}>
+              {progressMessage || "Agent is thinking..."}
+            </Typography>
           </Box>
         )}
         <div ref={messagesEndRef} />
