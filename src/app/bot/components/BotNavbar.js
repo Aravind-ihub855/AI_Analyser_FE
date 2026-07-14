@@ -10,10 +10,13 @@ import {
     ListItemButton,
     List,
     ListItemText,
+    Chip,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
+import StoreIcon from '@mui/icons-material/Store';
+import PublicIcon from '@mui/icons-material/Public';
 
-const BotNavbar = () => {
+const BotNavbar = ({ currentUser, storeName }) => {
     const router = useRouter();
     const [userName, setUserName] = useState("");
     const [anchorEl, setAnchorEl] = useState(null);
@@ -45,15 +48,12 @@ const BotNavbar = () => {
     return (
         <AppBar
             position="static"
-            sx={(theme) => ({
-                background: `linear-gradient(
-        180deg,
-        ${theme.palette.primary.main} 0%,
-        ${theme.palette.primary.main} 100%
-      )`,
+            sx={{
+                bgcolor: "#ffffff",
+                borderBottom: "1px solid #e2e8f0",
                 boxShadow: "none",
                 zIndex: 1201,
-            })}
+            }}
         >
             <Toolbar
                 sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", p: "6px", position: "relative" }}
@@ -68,18 +68,67 @@ const BotNavbar = () => {
                         left: "50%",
                         transform: "translateX(-50%)",
                         display: "flex",
-                        alignItems: "center"
+                        alignItems: "center",
+                        gap: 1.5
                     }}
                 >
                     <Typography
-                        color="menu.text.normal"
+                        color="text.primary"
                         variant="h6"
-                        fontSize={16}
+                        fontSize={15}
                         fontWeight={600}
-                        sx={{ opacity: 0.9, whiteSpace: "nowrap" }}
+                        sx={{ whiteSpace: "nowrap", letterSpacing: "-0.01em" }}
                     >
                         AI Assistant
                     </Typography>
+                    {currentUser?.role === 'store manager' && (
+                        <Chip
+                            icon={<StoreIcon sx={{ fontSize: '12px !important' }} />}
+                            label={`Viewing Store: ${storeName || currentUser.storeId || 'N/A'}`}
+                            size="small"
+                            sx={{
+                                fontSize: '11px',
+                                bgcolor: '#f1f5f9',
+                                color: '#334155',
+                                border: '1px solid #e2e8f0',
+                                height: '24px',
+                                fontWeight: 600,
+                                '& .MuiChip-icon': { color: '#475569' }
+                            }}
+                        />
+                    )}
+                    {currentUser?.role === 'vendor manager' && (
+                        <Chip
+                            icon={<PublicIcon sx={{ fontSize: '12px !important' }} />}
+                            label={`Region: ${currentUser.region || 'N/A'}`}
+                            size="small"
+                            sx={{
+                                fontSize: '11px',
+                                bgcolor: '#f1f5f9',
+                                color: '#334155',
+                                border: '1px solid #e2e8f0',
+                                height: '24px',
+                                fontWeight: 600,
+                                '& .MuiChip-icon': { color: '#475569' }
+                            }}
+                        />
+                    )}
+                    {currentUser?.role === 'super admin' && (
+                        <Chip
+                            icon={<PublicIcon sx={{ fontSize: '12px !important' }} />}
+                            label="Super Admin"
+                            size="small"
+                            sx={{
+                                fontSize: '11px',
+                                bgcolor: '#f1f5f9',
+                                color: '#334155',
+                                border: '1px solid #e2e8f0',
+                                height: '24px',
+                                fontWeight: 600,
+                                '& .MuiChip-icon': { color: '#475569' }
+                            }}
+                        />
+                    )}
                 </Box>
 
                 {/* Right Side - Avatar */}
@@ -89,14 +138,15 @@ const BotNavbar = () => {
                             width: 32,
                             height: 32,
                             borderRadius: "50%",
-                            color: "menu.text.default",
-                            bgcolor: "menu.text.normal",
+                            color: "#ffffff",
+                            bgcolor: "primary.main",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             mx: 2,
                             fontWeight: 600,
                             cursor: "pointer",
+                            fontSize: "13px"
                         }}
                         onClick={handleAvatarClick}
                     >

@@ -101,7 +101,7 @@ function Sidebar({
             background: isOpen ? 'none' : '#ffffff',
             border: isOpen ? 'none' : '1px solid #e2e8f0',
             cursor: 'pointer',
-            color: '#217DF0',
+            color: '#0f172a',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -124,7 +124,7 @@ function Sidebar({
           )}
         </button>
       </div>
-
+ 
       {/* New Chat Button */}
       <div style={{ 
         padding: isOpen ? '10px 16px 16px 16px' : '10px 0',
@@ -141,17 +141,17 @@ function Sidebar({
             justifyContent: 'center',
             gap: isOpen ? '12px' : '0',
             padding: isOpen ? '10px 16px' : '0',
-            backgroundColor: '#217DF0',
+            backgroundColor: '#0f172a',
             color: 'white',
             borderRadius: '8px',
             border: 'none',
             cursor: 'pointer',
             fontWeight: 600,
             transition: 'all 0.3s ease',
-            boxShadow: '0 2px 4px rgba(33, 125, 240, 0.2)'
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1a64c0'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#217DF0'}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1e293b'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
           title="New Chat"
         >
           <svg style={{ width: '20px', height: '20px', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@ function Sidebar({
                       padding: '4px 8px', 
                       backgroundColor: '#f8fafc', 
                       borderRadius: '8px',
-                      border: '1px solid #217DF0'
+                      border: '1px solid #0f172a'
                     }}>
                       <input
                         type="text"
@@ -222,9 +222,9 @@ function Sidebar({
                         textAlign: 'left',
                         padding: isOpen ? '12px' : '0',
                         borderRadius: '8px',
-                        backgroundColor: activeDoc === doc.id ? '#217DF0' : '#ffffff',
-                        color: activeDoc === doc.id ? 'white' : '#222',
-                        border: activeDoc === doc.id ? 'none' : '1px solid #e2e8f0',
+                        backgroundColor: activeDoc === doc.id ? '#f1f5f9' : '#ffffff',
+                        color: activeDoc === doc.id ? '#0f172a' : '#475569',
+                        border: activeDoc === doc.id ? '1px solid #cbd5e1' : '1px solid #e2e8f0',
                         cursor: 'pointer',
                         overflow: 'hidden',
                         whiteSpace: 'nowrap',
@@ -237,7 +237,7 @@ function Sidebar({
                       }}
                       onMouseOver={(e) => {
                         if (activeDoc !== doc.id) {
-                          e.currentTarget.style.backgroundColor = '#f1f1f1';
+                          e.currentTarget.style.backgroundColor = '#f8fafc';
                         }
                       }}
                       onMouseOut={(e) => {
@@ -250,7 +250,7 @@ function Sidebar({
                       <svg style={{ width: '18px', height: '18px', flexShrink: 0, opacity: activeDoc === doc.id ? 1 : 0.6 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                      {isOpen && <span style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.title}</span>}
+                      {isOpen && <span style={{ fontSize: '13px', fontWeight: activeDoc === doc.id ? 700 : 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.title}</span>}
                     </button>
                   )}
                   
@@ -280,9 +280,9 @@ function Sidebar({
                         <>
                           <button 
                             onClick={(e) => startEditing(e, doc.id, doc.title)}
-                            style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: activeDoc === doc.id ? 'white' : '#6c718a' }}
-                            onMouseOver={(e) => e.currentTarget.style.color = activeDoc === doc.id ? 'white' : '#217DF0'}
-                            onMouseOut={(e) => e.currentTarget.style.color = activeDoc === doc.id ? 'white' : '#6c718a'}
+                            style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#6c718a' }}
+                            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+                            onMouseOut={(e) => e.currentTarget.style.color = '#6c718a'}
                           >
                             <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -290,9 +290,9 @@ function Sidebar({
                           </button>
                           <button 
                             onClick={(e) => showDeleteConfirm(e, doc)}
-                            style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: activeDoc === doc.id ? 'white' : '#6c718a' }}
-                            onMouseOver={(e) => e.currentTarget.style.color = activeDoc === doc.id ? 'rgba(255,255,255,0.8)' : '#ef4444'}
-                            onMouseOut={(e) => e.currentTarget.style.color = activeDoc === doc.id ? 'white' : '#6c718a'}
+                            style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#6c718a' }}
+                            onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+                            onMouseOut={(e) => e.currentTarget.style.color = '#6c718a'}
                           >
                             <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

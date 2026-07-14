@@ -42,6 +42,21 @@ export default function ChatBot() {
   const [authorized, setAuthorized] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [progressMessage, setProgressMessage] = useState('');
+  const [storeName, setStoreName] = useState('');
+
+  const fetchStoreName = async (storeId) => {
+    try {
+      const response = await apiService({
+        method: "get",
+        url: `/r2r/stores/${storeId}/name`,
+        customBaseUrl: config.FINANCE_AI_Base_url
+      });
+      setStoreName(response.data.name);
+    } catch (error) {
+      console.error("Error fetching store name:", error);
+      setStoreName(storeId);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -54,7 +69,13 @@ export default function ChatBot() {
     // Extract user profile from localStorage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      try { setCurrentUser(JSON.parse(storedUser)); } catch(e) {}
+      try { 
+        const u = JSON.parse(storedUser);
+        setCurrentUser(u); 
+        if (u.role === 'store manager' && u.storeId) {
+          fetchStoreName(u.storeId);
+        }
+      } catch(e) {}
     }
 
     // Initial fetch of chats
@@ -155,7 +176,9 @@ export default function ChatBot() {
           tableData: m.tableData,
           chartData: m.chartData,
           reportData: m.reportData,
-          dashboardData: m.dashboardData
+          dashboardData: m.dashboardData,
+          tools_used: m.tools_used,
+          metadata: m.metadata
         })));
 
         // Load the last state if available
@@ -275,7 +298,10 @@ export default function ChatBot() {
     try {
       setProgressMessage("Initializing request...");
       
-      const response = await fetch(`${config.FINANCE_AI_Base_url}/r2r/chat/stream`, {
+      const baseUrl = config.FINANCE_AI_Base_url.endsWith('/') 
+        ? config.FINANCE_AI_Base_url.slice(0, -1) 
+        : config.FINANCE_AI_Base_url;
+      const response = await fetch(`${baseUrl}/r2r/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -350,6 +376,7 @@ export default function ChatBot() {
                   last.tools_used = data.tools_used;
                   last.metadata = {
                     model: data.model_name || "mistral-medium-2505",
+                    token_usage: data.token_usage || null,
                     chartConfig: chartConfig
                   };
                   delete last.isStreaming;
@@ -393,7 +420,12 @@ export default function ChatBot() {
                       tableData: data.tableData,
                       chartData: chartConfig,
                       reportData: data.reportData,
-                      tools_used: data.tools_used
+                      tools_used: data.tools_used,
+                      metadata: {
+                        model: data.model_name || "mistral-medium-2505",
+                        token_usage: data.token_usage || null,
+                        chartConfig: chartConfig
+                      }
                     }
                   });
 
@@ -490,7 +522,7 @@ export default function ChatBot() {
       <CssBaseline />
 
       {/* BotNavbar is handled globally in layout.js, but if we need a specific one here: */}
-      <BotNavbar />
+      <BotNavbar currentUser={currentUser} storeName={storeName} />
 
       {/* Main Container: Split View */}
       <Box sx={{
@@ -539,6 +571,7 @@ export default function ChatBot() {
             onShowData={handleShowData}
             currentUser={currentUser}
             progressMessage={progressMessage}
+            storeName={storeName}
           />
         </Box>
       </Box>

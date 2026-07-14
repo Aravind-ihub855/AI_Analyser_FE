@@ -4,39 +4,40 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#217DF0",
-      navbar: "#217DF0",
+      main: "#0f172a",
+      navbar: "#ffffff",
     },
     custom: {
       greenGradient:
-        "linear-gradient(90deg, #779B2A 0%, #9AC757 53%, #C4ED53 100%)",
+        "linear-gradient(90deg, #334155 0%, #475569 53%, #64748b 100%)",
     },
     secondary: {
-      main: "#A7E1FA",
+      main: "#f1f5f9",
     },
     background: {
-      default: "#F5F5F5",
+      default: "#f8fafc",
     },
     text: {
-      primary: "#1E293B",
+      primary: "#0f172a",
+      secondary: "#475569",
     },
     menu: {
-      active: "#E9E9E9",
-      hover: "#F5F5F5",
+      active: "#f1f5f9",
+      hover: "#f8fafc",
       text: {
-        active: "#217DF0",
-        normal: "white",
-        disabled: "black",
-        default: "#333",
+        active: "#0f172a",
+        normal: "#475569",
+        disabled: "#94a3b8",
+        default: "#475569",
       },
       collapse: {
-        background: "#217DF0",
-        active: "#217DF0",
+        background: "#0f172a",
+        active: "#0f172a",
       },
     },
     // ✅ Add a common hover setting
     hover: {
-      background: "#1a6ad4",
+      background: "#1e293b",
       text: "white",
       borderRadius: "5px",
       Margin: "10px",

@@ -25,7 +25,7 @@ import remarkGfm from 'remark-gfm';
 
 const TokenBadge = ({ metadata, tools_used }) => {
   if (!metadata && (!tools_used || tools_used.length === 0)) return null;
-  const { model, token_usage } = metadata || {};
+  const { token_usage } = metadata || {};
   const total = token_usage?.total_tokens;
 
   return (
@@ -37,22 +37,6 @@ const TokenBadge = ({ metadata, tools_used }) => {
       px: 0.5,
       flexWrap: 'wrap'
     }}>
-      {model && (
-        <Chip
-          label={model}
-          size="small"
-          sx={{
-            fontSize: '9px',
-            height: '18px',
-            bgcolor: '#eff6ff',
-            color: '#1d4ed8',
-            border: '1px solid #bfdbfe',
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            '& .MuiChip-label': { px: 0.75 }
-          }}
-        />
-      )}
       {total > 0 && (
         <Tooltip title={`Prompt: ${token_usage.prompt_tokens} | Completion: ${token_usage.completion_tokens}`} arrow>
           <Chip
@@ -61,9 +45,9 @@ const TokenBadge = ({ metadata, tools_used }) => {
             sx={{
               fontSize: '9px',
               height: '18px',
-              bgcolor: '#f0fdf4',
-              color: '#15803d',
-              border: '1px solid #bbf7d0',
+              bgcolor: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #cbd5e1',
               fontWeight: 600,
               cursor: 'help',
               '& .MuiChip-label': { px: 0.75 }
@@ -79,9 +63,9 @@ const TokenBadge = ({ metadata, tools_used }) => {
           sx={{
             fontSize: '9px',
             height: '18px',
-            bgcolor: '#f1f5f9',
-            color: '#475569',
-            border: '1px solid #cbd5e1',
+            bgcolor: '#f8fafc',
+            color: '#64748b',
+            border: '1px solid #e2e8f0',
             fontWeight: 500,
             '& .MuiChip-label': { px: 0.75 }
           }}
@@ -94,6 +78,11 @@ const TokenBadge = ({ metadata, tools_used }) => {
 const ChatMessage = ({ message, onShowData }) => {
   const isBot = message.role === 'assistant';
   const hasData = message.tableData || message.chartData || message.reportData || message.dashboardData;
+
+  // Fix: Hide empty chat bubble when message is empty during streaming/loading
+  if (!message.content?.trim() && !hasData) {
+    return null;
+  }
 
   return (
     <Box sx={{
@@ -110,16 +99,16 @@ const ChatMessage = ({ message, onShowData }) => {
         maxWidth: '95%'
       }}>
         <Avatar sx={{
-          bgcolor: isBot ? 'primary.main' : '#f1f5f9',
+          bgcolor: isBot ? '#f1f5f9' : 'primary.main',
           mr: isBot ? 1.5 : 0,
           ml: isBot ? 0 : 1.5,
           width: 32,
           height: 32,
           flexShrink: 0,
           border: '1px solid',
-          borderColor: isBot ? 'primary.main' : '#e2e8f0'
+          borderColor: isBot ? '#cbd5e1' : 'primary.main'
         }}>
-          {isBot ? <SmartToyIcon fontSize="small" /> : <PersonIcon fontSize="small" sx={{ color: '#64748b' }} />}
+          {isBot ? <SmartToyIcon fontSize="small" sx={{ color: '#475569' }} /> : <PersonIcon fontSize="small" sx={{ color: '#ffffff' }} />}
         </Avatar>
         <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isBot ? 'flex-start' : 'flex-end' }}>
           <Paper
@@ -189,7 +178,7 @@ const ChatMessage = ({ message, onShowData }) => {
                       }}>
                         {row.map((val, ci) => (
                           <td key={ci} style={{ padding: '8px 10px', color: '#475569', whiteSpace: 'nowrap' }}>
-                            {val}
+                             {val}
                           </td>
                         ))}
                       </tr>
@@ -217,72 +206,7 @@ const ChatMessage = ({ message, onShowData }) => {
   );
 };
 
-const PersonaBanner = ({ currentUser }) => {
-  if (!currentUser) return null;
-  const role = currentUser.role || '';
-  const isStoreManager = role === 'store manager';
-  const isVendorManager = role === 'vendor manager';
-  const isSuperAdmin = role === 'super admin';
 
-  if (!isStoreManager && !isVendorManager && !isSuperAdmin) return null;
-
-  return (
-    <Box sx={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 1,
-      px: 3,
-      py: 1,
-      bgcolor: isStoreManager ? '#eff6ff' : isVendorManager ? '#fefce8' : '#f0fdf4',
-      borderBottom: '1px solid',
-      borderColor: isStoreManager ? '#bfdbfe' : isVendorManager ? '#fde68a' : '#bbf7d0',
-    }}>
-      {isStoreManager && (
-        <>
-          <StoreIcon sx={{ fontSize: 14, color: '#2563eb' }} />
-          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#1e40af' }}>
-            Store Manager
-          </Typography>
-          <Typography sx={{ fontSize: '11px', color: '#3b82f6' }}>
-            — Viewing data for store:
-          </Typography>
-          <Chip
-            label={currentUser.storeId || 'N/A'}
-            size="small"
-            sx={{ fontSize: '10px', height: '18px', bgcolor: '#dbeafe', color: '#1d4ed8', fontWeight: 700, '& .MuiChip-label': { px: 1 } }}
-          />
-        </>
-      )}
-      {isVendorManager && (
-        <>
-          <PublicIcon sx={{ fontSize: 14, color: '#d97706' }} />
-          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#92400e' }}>
-            Vendor Manager
-          </Typography>
-          <Typography sx={{ fontSize: '11px', color: '#b45309' }}>
-            — Region:
-          </Typography>
-          <Chip
-            label={currentUser.region || 'N/A'}
-            size="small"
-            sx={{ fontSize: '10px', height: '18px', bgcolor: '#fef3c7', color: '#b45309', fontWeight: 700, '& .MuiChip-label': { px: 1 } }}
-          />
-        </>
-      )}
-      {isSuperAdmin && (
-        <>
-          <PublicIcon sx={{ fontSize: 14, color: '#059669' }} />
-          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#065f46' }}>
-            Super Admin
-          </Typography>
-          <Typography sx={{ fontSize: '11px', color: '#10b981' }}>
-            — Full access across all stores & regions
-          </Typography>
-        </>
-      )}
-    </Box>
-  );
-};
 
 const ChatPanel = ({
   messages,
@@ -296,7 +220,8 @@ const ChatPanel = ({
   isSynced,
   onShowData,
   currentUser,
-  progressMessage
+  progressMessage,
+  storeName
 }) => {
   return (
     <Box sx={{
@@ -318,18 +243,22 @@ const ChatPanel = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid #f8fafc',
+        borderBottom: '1px solid #f1f5f9',
         bgcolor: '#ffffff'
       }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', letterSpacing: '0.025em', fontSize: '12px' }}>
-            BP STORE MANAGER AI COPILOT
-          </Typography>
-          {currentUser?.name && (
-            <Typography sx={{ fontSize: '10px', color: '#94a3b8', fontWeight: 500 }}>
-              {currentUser.name}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', letterSpacing: '0.025em', fontSize: '12px' }}>
+              {currentUser?.role === 'store manager' ? 'BP STORE MANAGER AI COPILOT' : 
+               currentUser?.role === 'vendor manager' ? 'BP VENDOR MANAGER AI COPILOT' : 
+               'BP AI COPILOT'}
             </Typography>
-          )}
+            {currentUser?.name && (
+              <Typography sx={{ fontSize: '10px', color: '#64748b', fontWeight: 500 }}>
+                {currentUser.name}
+              </Typography>
+            )}
+          </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           {syncing ? (
@@ -376,9 +305,6 @@ const ChatPanel = ({
           )}
         </Box>
       </Box>
-
-      {/* Persona Banner */}
-      <PersonaBanner currentUser={currentUser} />
 
       {/* Messages */}
       <Box sx={{
