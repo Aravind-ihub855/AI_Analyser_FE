@@ -76,6 +76,8 @@ export default function LoginPage() {
       localStorage.setItem("user_id", user.id);
       localStorage.setItem("user_name", user.name || "User");
       localStorage.setItem("user_email", user.email);
+      // Store full user profile for persona display in ChatPanel
+      localStorage.setItem("user", JSON.stringify(user));
 
       setSuccess("Login successful! Redirecting...");
       setTimeout(() => {

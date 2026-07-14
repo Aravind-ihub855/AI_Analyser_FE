@@ -8,14 +8,71 @@ import {
   TextField,
   Avatar,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Chip,
+  Tooltip
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import PersonIcon from '@mui/icons-material/Person';
+import StoreIcon from '@mui/icons-material/Store';
+import PublicIcon from '@mui/icons-material/Public';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+const TokenBadge = ({ metadata }) => {
+  if (!metadata) return null;
+  const { model, token_usage } = metadata;
+  const total = token_usage?.total_tokens;
+  if (!model && !total) return null;
+
+  return (
+    <Box sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.75,
+      mt: 0.75,
+      px: 0.5,
+      flexWrap: 'wrap'
+    }}>
+      {model && (
+        <Chip
+          label={model}
+          size="small"
+          sx={{
+            fontSize: '9px',
+            height: '18px',
+            bgcolor: '#eff6ff',
+            color: '#1d4ed8',
+            border: '1px solid #bfdbfe',
+            fontWeight: 600,
+            letterSpacing: '0.02em',
+            '& .MuiChip-label': { px: 0.75 }
+          }}
+        />
+      )}
+      {total > 0 && (
+        <Tooltip title={`Prompt: ${token_usage.prompt_tokens} | Completion: ${token_usage.completion_tokens}`} arrow>
+          <Chip
+            label={`${total.toLocaleString()} tokens`}
+            size="small"
+            sx={{
+              fontSize: '9px',
+              height: '18px',
+              bgcolor: '#f0fdf4',
+              color: '#15803d',
+              border: '1px solid #bbf7d0',
+              fontWeight: 600,
+              cursor: 'help',
+              '& .MuiChip-label': { px: 0.75 }
+            }}
+          />
+        </Tooltip>
+      )}
+    </Box>
+  );
+};
 
 const ChatMessage = ({ message, onShowData }) => {
   const isBot = message.role === 'assistant';
@@ -59,20 +116,10 @@ const ChatMessage = ({ message, onShowData }) => {
               border: '1px solid',
               borderColor: isBot ? '#e2e8f0' : 'primary.main',
               boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-              '& strong': {
-                fontWeight: 700,
-              },
-              '& p': {
-                m: 0,
-                lineHeight: 1.6,
-              },
-              '& ul, & ol': {
-                pl: 2,
-                mt: 1,
-              },
-              '& li': {
-                mb: 0.5,
-              },
+              '& strong': { fontWeight: 700 },
+              '& p': { m: 0, lineHeight: 1.6 },
+              '& ul, & ol': { pl: 2, mt: 1 },
+              '& li': { mb: 0.5 },
               '& table': {
                 width: '100%',
                 borderCollapse: 'collapse',
@@ -95,22 +142,11 @@ const ChatMessage = ({ message, onShowData }) => {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
             </div>
             {isBot && hasData && !message.content.toLowerCase().startsWith("i'm sorry, i encountered") && (
-              <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton 
-                  size="small" 
-                  onClick={() => onShowData(message)}
-                  sx={{ 
-                    fontSize: '10px', 
-                    borderRadius: 1, 
-                    bgcolor: 'primary.light', 
-                    color: 'white',
-                    px: 1.5,
-                    py: 0.5,
-                    '&:hover': { bgcolor: 'primary.main' }
-                  }}
-                >
-                  View Result
-                </IconButton>
+              <Box sx={{ mt: 1, pt: 0.75, borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} />
+                <Typography sx={{ fontSize: '10px', color: '#64748b', fontWeight: 500 }}>
+                  Data loaded in Analytics panel
+                </Typography>
               </Box>
             )}
           </Paper>
@@ -123,10 +159,78 @@ const ChatMessage = ({ message, onShowData }) => {
             display: 'block',
             textAlign: isBot ? 'left' : 'right'
           }}>
-            {isBot ? 'Finance AI Agent' : 'You'}
           </Typography>
+          {/* Token Usage Badge — only for AI messages */}
+          {isBot && <TokenBadge metadata={message.metadata} />}
         </Box>
       </Box>
+    </Box>
+  );
+};
+
+const PersonaBanner = ({ currentUser }) => {
+  if (!currentUser) return null;
+  const role = currentUser.role || '';
+  const isStoreManager = role === 'store manager';
+  const isVendorManager = role === 'vendor manager';
+  const isSuperAdmin = role === 'super admin';
+
+  if (!isStoreManager && !isVendorManager && !isSuperAdmin) return null;
+
+  return (
+    <Box sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1,
+      px: 3,
+      py: 1,
+      bgcolor: isStoreManager ? '#eff6ff' : isVendorManager ? '#fefce8' : '#f0fdf4',
+      borderBottom: '1px solid',
+      borderColor: isStoreManager ? '#bfdbfe' : isVendorManager ? '#fde68a' : '#bbf7d0',
+    }}>
+      {isStoreManager && (
+        <>
+          <StoreIcon sx={{ fontSize: 14, color: '#2563eb' }} />
+          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#1e40af' }}>
+            Store Manager
+          </Typography>
+          <Typography sx={{ fontSize: '11px', color: '#3b82f6' }}>
+            — Viewing data for store:
+          </Typography>
+          <Chip
+            label={currentUser.storeId || 'N/A'}
+            size="small"
+            sx={{ fontSize: '10px', height: '18px', bgcolor: '#dbeafe', color: '#1d4ed8', fontWeight: 700, '& .MuiChip-label': { px: 1 } }}
+          />
+        </>
+      )}
+      {isVendorManager && (
+        <>
+          <PublicIcon sx={{ fontSize: 14, color: '#d97706' }} />
+          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#92400e' }}>
+            Vendor Manager
+          </Typography>
+          <Typography sx={{ fontSize: '11px', color: '#b45309' }}>
+            — Region:
+          </Typography>
+          <Chip
+            label={currentUser.region || 'N/A'}
+            size="small"
+            sx={{ fontSize: '10px', height: '18px', bgcolor: '#fef3c7', color: '#b45309', fontWeight: 700, '& .MuiChip-label': { px: 1 } }}
+          />
+        </>
+      )}
+      {isSuperAdmin && (
+        <>
+          <PublicIcon sx={{ fontSize: 14, color: '#059669' }} />
+          <Typography sx={{ fontSize: '11px', fontWeight: 600, color: '#065f46' }}>
+            Super Admin
+          </Typography>
+          <Typography sx={{ fontSize: '11px', color: '#10b981' }}>
+            — Full access across all stores & regions
+          </Typography>
+        </>
+      )}
     </Box>
   );
 };
@@ -141,7 +245,8 @@ const ChatPanel = ({
   handleSync,
   syncing,
   isSynced,
-  onShowData
+  onShowData,
+  currentUser
 }) => {
   return (
     <Box sx={{
@@ -155,6 +260,7 @@ const ChatPanel = ({
       height: '100%',
       minHeight: 0
     }}>
+      {/* Header */}
       <Box sx={{
         p: 0,
         px: 3,
@@ -165,8 +271,16 @@ const ChatPanel = ({
         borderBottom: '1px solid #f8fafc',
         bgcolor: '#ffffff'
       }}>
-        {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', letterSpacing: '0.025em', fontSize: '12px' }}>FINANCE AI AGENT</Typography> */}
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', letterSpacing: '0.025em', fontSize: '12px' }}>FINANCE AI AGENT</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1e293b', letterSpacing: '0.025em', fontSize: '12px' }}>
+            BP STORE MANAGER AI COPILOT
+          </Typography>
+          {currentUser?.name && (
+            <Typography sx={{ fontSize: '10px', color: '#94a3b8', fontWeight: 500 }}>
+              {currentUser.name}
+            </Typography>
+          )}
+        </Box>
         {syncing && (
           <Box sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
             <CircularProgress size={12} sx={{ mr: 1 }} />
@@ -180,6 +294,10 @@ const ChatPanel = ({
         )}
       </Box>
 
+      {/* Persona Banner */}
+      <PersonaBanner currentUser={currentUser} />
+
+      {/* Messages */}
       <Box sx={{
         flexGrow: 1,
         p: { xs: 2, md: 3 },
@@ -187,20 +305,10 @@ const ChatPanel = ({
         display: 'flex',
         flexDirection: 'column',
         bgcolor: '#ffffff',
-        /* Custom Scrollbar Styles */
-        '&::-webkit-scrollbar': {
-          width: '6px',
-        },
-        '&::-webkit-scrollbar-track': {
-          background: 'transparent',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: '#e2e8f0',
-          borderRadius: '10px',
-        },
-        '&::-webkit-scrollbar-thumb:hover': {
-          background: '#cbd5e1',
-        }
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-track': { background: 'transparent' },
+        '&::-webkit-scrollbar-thumb': { background: '#e2e8f0', borderRadius: '10px' },
+        '&::-webkit-scrollbar-thumb:hover': { background: '#cbd5e1' }
       }}>
         {messages.map((msg, idx) => (
           <ChatMessage key={idx} message={msg} onShowData={onShowData} />

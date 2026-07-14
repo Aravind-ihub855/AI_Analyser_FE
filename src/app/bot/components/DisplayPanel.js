@@ -12,7 +12,6 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Button,
   Tooltip
 } from '@mui/material';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -26,6 +25,19 @@ import remarkGfm from 'remark-gfm';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import DashboardPanel from './DashboardPanel';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip as ChartTooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title
+} from 'chart.js';
+import { Doughnut, Bar } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, ChartTooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 const ChatTable = ({ data }) => {
   if (!data || !data.headers || !data.rows) return (
@@ -146,6 +158,73 @@ const ChatTable = ({ data }) => {
         </TableBody>
       </Table>
     </TableContainer>
+  );
+};
+
+const ChartRenderer = ({ config }) => {
+  if (!config || !config.type || !config.labels || !config.datasets) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.secondary' }}>
+        <Typography variant="body2">No chart data available.</Typography>
+      </Box>
+    );
+  }
+  const { type, title, labels, datasets } = config;
+  const chartData = {
+    labels,
+    datasets: datasets.map(ds => ({
+      ...ds,
+      borderWidth: type === 'doughnut' ? 2 : 0,
+      borderColor: type === 'doughnut' ? '#fff' : undefined,
+      borderRadius: type === 'bar' ? 6 : undefined,
+      hoverOffset: type === 'doughnut' ? 8 : undefined,
+    }))
+  };
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: type === 'doughnut' ? 'right' : 'top',
+        labels: { font: { size: 12 }, color: '#475569', padding: 16, usePointStyle: type === 'doughnut' }
+      },
+      title: {
+        display: !!title,
+        text: title || '',
+        font: { size: 14, weight: '700' },
+        color: '#1e293b',
+        padding: { bottom: 16 }
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed.y ?? ctx.parsed;
+            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+            if (type === 'doughnut') {
+              const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+              return ` ${ctx.label}: ${val} (${pct}%)`;
+            }
+            return ` ${ctx.dataset.label}: ${typeof val === 'number' ? val.toLocaleString() : val}`;
+          }
+        }
+      }
+    }
+  };
+  const barOptions = {
+    ...commonOptions,
+    indexAxis: labels.length > 6 ? 'y' : 'x',
+    scales: {
+      x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#64748b', maxRotation: 35 } },
+      y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, color: '#64748b' }, beginAtZero: true }
+    }
+  };
+  return (
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', height: type === 'doughnut' ? '340px' : '420px' }}>
+        {type === 'doughnut' && <Doughnut data={chartData} options={commonOptions} />}
+        {type === 'bar' && <Bar data={chartData} options={barOptions} />}
+      </Box>
+    </Box>
   );
 };
 
@@ -451,17 +530,22 @@ const DisplayPanel = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                p: 2,
                 bgcolor: 'white',
                 borderRadius: 2,
                 border: '1px solid #e2e8f0',
-                animation: 'fadeIn 0.3s ease-in-out'
+                animation: 'fadeIn 0.3s ease-in-out',
+                p: 2,
+                minHeight: '350px'
               }}>
-                <img
-                  src={`data:image/png;base64,${currentChart}`}
-                  alt="Visualization"
-                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                />
+                {typeof currentChart === 'string' ? (
+                  <img
+                    src={`data:image/png;base64,${currentChart}`}
+                    alt="Visualization"
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <ChartRenderer config={currentChart} />
+                )}
               </Box>
             )}
             {activeView === 'dashboard' && currentDashboard && (

@@ -28,7 +28,7 @@ export default function ChatBot() {
     };
   }, []);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "Hello! I'm your Finance Assistant. I can help you analyze your data, detect anomalies, and create visualizations. How can I assist you today?" }
+    { role: 'assistant', content: "Hello, Store Manager! I'm your BP Store Manager AI Copilot. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,6 +41,7 @@ export default function ChatBot() {
   const [activeChatId, setActiveChatId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [authorized, setAuthorized] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -49,6 +50,13 @@ export default function ChatBot() {
       return;
     }
     setAuthorized(true);
+
+    // Extract user profile from localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try { setCurrentUser(JSON.parse(storedUser)); } catch(e) {}
+    }
+
     // Initial fetch of chats
     fetchChats();
 
@@ -67,14 +75,25 @@ export default function ChatBot() {
   }, []);
 
   // --- PERSISTENT HISTORY HANDLERS ---
-  const fetchChats = async () => {
+  const fetchChats = async (selectLatest = false) => {
     try {
       const response = await apiService({
         method: "get",
         url: "/r2r/chats",
         customBaseUrl: config.FINANCE_AI_Base_url
       });
-      setChats(response.data.chats || []);
+      const chatList = response.data.chats || [];
+      setChats(chatList);
+      
+      if (chatList.length > 0) {
+        // If no chat is active, or selectLatest is requested, open the most recent chat
+        if (!activeChatId || selectLatest) {
+          handleOpenChat(chatList[0].id);
+        }
+      } else {
+        // If there are no chats at all, automatically initialize a new chat session
+        handleNewChat();
+      }
     } catch (error) {
       console.error("Error fetching chats:", error);
     }
@@ -96,8 +115,18 @@ export default function ChatBot() {
       setCurrentReport(null);
       setCurrentDashboard(null);
 
-      setMessages([{ role: 'assistant', content: "Hello! I'm a Finance AI. How can I assist you today?" }]);
-      fetchChats();
+      setMessages([{ 
+        role: 'assistant', 
+        content: "Hello, Store Manager! I'm your BP Store Manager AI Copilot. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" 
+      }]);
+
+      // Refresh chat list (without selecting latest again to prevent loops)
+      const listResponse = await apiService({
+        method: "get",
+        url: "/r2r/chats",
+        customBaseUrl: config.FINANCE_AI_Base_url
+      });
+      setChats(listResponse.data.chats || []);
     } catch (error) {
       console.error("Error creating new chat:", error);
     }
@@ -256,13 +285,18 @@ export default function ChatBot() {
       const data = response.data;
 
       const aiText = data.answer;
+      const chartConfig = data.metadata?.chartConfig || null;
 
-      // Update UI state immediately
+      // Update UI state immediately — prioritise chart when available
       if (data.tableData) {
         setCurrentTable(data.tableData);
-        setActiveView('table');
+        setActiveView(chartConfig ? 'chart' : 'table');
       }
-      if (data.chartData) {
+      if (chartConfig) {
+        setCurrentChart(chartConfig);
+        setActiveView('chart');
+      }
+      if (data.chartData && !chartConfig) {
         setCurrentChart(data.chartData);
         setActiveView('chart');
       }
@@ -279,9 +313,10 @@ export default function ChatBot() {
         role: 'assistant',
         content: aiText,
         tableData: data.tableData,
-        chartData: data.chartData,
+        chartData: chartConfig || data.chartData,
         reportData: data.reportData,
-        dashboardData: data.dashboardData
+        dashboardData: data.dashboardData,
+        metadata: data.metadata || null
       }]);
 
       // --- PERSISTENT SAVE ---
@@ -290,7 +325,7 @@ export default function ChatBot() {
           // Save User Message
           await apiService({
             method: "post",
-            url: "/r2r/chats/message", // Add this to route
+            url: "/r2r/chats/message",
             customBaseUrl: config.FINANCE_AI_Base_url,
             data: { chat_id: activeChatId, role: 'user', content: userText }
           });
@@ -304,11 +339,18 @@ export default function ChatBot() {
               role: 'assistant',
               content: aiText,
               tableData: data.tableData,
-              chartData: data.chartData,
+              chartData: chartConfig || data.chartData,
               reportData: data.reportData,
               dashboardData: data.dashboardData
             }
           });
+
+          // Automatically rename chat if it is currently named "New Chat"
+          const activeChat = chats.find(c => c.id === activeChatId);
+          if (activeChat && activeChat.title === "New Chat") {
+            const newTitle = userText.length > 25 ? userText.substring(0, 25) + "..." : userText;
+            await handleRenameChat(activeChatId, newTitle);
+          }
         } catch (saveErr) {
           console.error("Error saving to history:", saveErr);
         }
@@ -425,6 +467,7 @@ export default function ChatBot() {
             syncing={syncing}
             isSynced={isSynced}
             onShowData={handleShowData}
+            currentUser={currentUser}
           />
 
           {/* Right Panel: Data Display Section */}
