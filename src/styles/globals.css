@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+  --zf-body-font-family: "Poppins", "Inter", "Source Sans Pro", Helvetica, Arial, sans-serif;
+}
+
+body {
+  font-family: var(--zf-body-font-family) !important;
+  /* overflow-y: hidden; */
+  font-size: 14px !important;
+}
+
+th {
+  font-weight: 600 !important;
+  background: #f9f9fb !important;
+  font-size: 11px !important;
+  color: #6c718a !important;
+  /* letter-spacing: 1px !important; */
+}
+
+@supports (scrollbar-width:auto) {
+  * {
+    scrollbar-color: rgba(131, 129, 149, .6) transparent !important;
+    scrollbar-width: auto !important;
+  }
+}
+
+td {
+  color: #222 !important;
+  font-weight: 500 !important;
+  font-size: 13.5px !important;
+}
+
+.transaction .trans-td {
+  color: #222 !important;
+}
+
+table {
+  cursor: pointer !important;
+  border-radius: 0px !important;
+}
+
+.menu-text .MuiTypography-root {
+  font-size: 13px !important;
+}
+
+.button-submit {
+  background: #217DF0;
+  font-size: 12px !important;
+  width: 20%;
+  padding: 6px !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  min-width: none !important;
+  color: #fff !important;
+}
+
+.button-submit .MuiButton-icon svg {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+.button-submitadd {
+  background-color: #217DF0;
+  font-size: 12px !important;
+  width: 15px;
+  padding: 6px !important;
+  text-transform: none !important;
+  min-width: none;
+}
+
+.button-svg {
+  color: #fff;
+  border-radius: 3px !important;
+  font-size: 16px !important
+}
+
+.button-icon {
+  background: #217DF0;
+  border-radius: 5px !important;
+  margin-right: 10px !important;
+}
+
+
+.more-icon {
+  background: #f5f5f5 !important;
+  border-radius: 5px !important;
+  margin-right: 3px !important;
+  border: 1px solid #dddddd !important;
+  font-size: 15px !important
+}
+
+.button-more-svg {
+  font-size: 14px !important
+}
+
+.details .details-info {
+  border-right: 1px solid #eee;
+  background-color: #FBFBFA;
+  width: 34%;
+  vertical-align: top;
+  padding: 10px 20px 70px;
+  word-wrap: break-word;
+}
+
+.details-info.MuiPaper-root.MuiAccordion-root::before {
+  content: none !important;
+  background-color: unset !important;
+  position: unset;
+}
+
+.menu-icon {
+  width: 16px !important;
+}
+
+.menu-icon:hover {
+  color: white !important;
+}
+
+.set-menu-icon {
+  width: 16px !important;
+  color: #ddd !important;
+}
+
+.set-menu-icon:hover {
+  color: #6c718a !important;
+}
+
+.bulk-update-btn {
+  background: #f5f5f5 !important;
+  font-size: 12px !important;
+  padding: 6px !important;
+  color: #0f1b17 !important;
+  border: 1px solid #dddddd !important;
+  text-transform: none !important;
+  min-width: none;
+  box-shadow: none !important;
+}
+
+.group-btn {
+  box-shadow: none !important;
+}
+
+.bulk-update-btn-icon {
+  fill: #0f1b17 !important;
+  width: 17px !important;
+}
+
+.trans-btn {
+  width: 50% !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+.close-icon.MuiSvgIcon-root {
+  fill: #fe4242 !important;
+}
+
+.load-circle {
+  width: 6px;
+  height: 6px;
+  background: gray;
+  display: inline-block;
+  border-radius: 50%;
+  margin: 0 3px;
+  animation: loader 1.5s infinite ease-in-out;
+}
+
+.load-circle1 {
+  animation-delay: 0s;
+}
+
+.load-circle2 {
+  animation-delay: 0.2s;
+}
+
+.load-circle3 {
+  animation-delay: 0.4s;
+}
+
+.load-circle4 {
+  animation-delay: 0.6s;
+}
+
+.load-circle5 {
+  animation-delay: 0.8s;
+}
+
+@keyframes loader {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+.dot-loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  flex-grow: 1;
+}
+
+a {
+  cursor: pointer;
+  font-weight: 400;
+  transition: 0.3s;
+}
+
+a:hover {
+  color: #217DF0;
+  transition: 0.3s;
+}
+
+/* Additional CSS for consistent icon rendering */
+.MuiTableSortLabel-root {
+  user-select: none;
+  /* Prevent text selection when clicking */
+}
+
+/* Fix for Safari and Firefox icon alignment */
+.MuiTableSortLabel-root .MuiSvgIcon-root {
+  overflow: visible;
+  /* Helps with clipping issues */
+  pointer-events: none;
+  /* Prevents icons from interfering with clicks */
+}
+
+/* Optional: Add a subtle hover effect */
+.MuiTableSortLabel-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
