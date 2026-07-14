@@ -37,7 +37,7 @@ const BotNavbar = () => {
     const handleLogout = () => {
         localStorage.clear();
         handleProfileClose();
-        router.push("/organisation/login");
+        router.push("/login");
     };
 
     const isRestrictedUser = typeof window !== 'undefined' && localStorage.getItem("is_bot_user") === "true";

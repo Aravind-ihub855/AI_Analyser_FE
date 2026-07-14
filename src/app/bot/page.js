@@ -7,6 +7,7 @@ import {
   ThemeProvider,
   createTheme,
   CssBaseline,
+  CircularProgress,
 } from '@mui/material';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import apiService from "../../../src/services/axiosService";
@@ -15,8 +16,10 @@ import ChatPanel from './components/ChatPanel';
 import DisplayPanel from './components/DisplayPanel';
 import Sidebar from './components/Sidebar';
 import BotNavbar from './components/BotNavbar';
+import { useRouter } from 'next/navigation';
 
 export default function ChatBot() {
+  const router = useRouter();
   useEffect(() => {
     // Hide default scrollbar for this page
     document.body.style.overflow = 'hidden';
@@ -37,8 +40,15 @@ export default function ChatBot() {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    setAuthorized(true);
     // Initial fetch of chats
     fetchChats();
 
@@ -348,6 +358,14 @@ export default function ChatBot() {
     if (msg.reportData) { setCurrentReport(msg.reportData); setActiveView('report'); }
     if (msg.dashboardData) { setCurrentDashboard(msg.dashboardData); setActiveView('dashboard'); }
   };
+
+  if (!authorized) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', bgcolor: 'background.default' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{
