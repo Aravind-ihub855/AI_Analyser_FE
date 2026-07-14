@@ -8,10 +8,10 @@ import {
   createTheme,
   CssBaseline,
   CircularProgress,
+  Paper
 } from '@mui/material';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import apiService from "../../../src/services/axiosService";
-import config from "../../../src/services/config";
+import apiService from "@/services/axiosService";
+import config from "@/services/config";
 import ChatPanel from './components/ChatPanel';
 import DisplayPanel from './components/DisplayPanel';
 import Sidebar from './components/Sidebar';
