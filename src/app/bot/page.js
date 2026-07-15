@@ -136,6 +136,12 @@ export default function ChatBot() {
       setCurrentReport(null);
       setCurrentDashboard(null);
 
+      // Clear memory context for the new chat session
+      setChatSummaries([]);
+      setActiveMessages([]);
+      localStorage.removeItem('finance_ai_summaries');
+      localStorage.removeItem('finance_ai_active');
+
       setMessages([{ 
         role: 'assistant', 
         content: "Hello, Store Manager! I'm your BP Store Manager AI Copilot. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" 
@@ -181,6 +187,16 @@ export default function ChatBot() {
           metadata: m.metadata
         })));
 
+        // Load active memory context from loaded history
+        const activeMsgs = history.map(m => {
+          const prefix = m.role === 'user' ? 'User' : 'Ai';
+          return `${prefix}: ${m.content}`;
+        });
+        setActiveMessages(activeMsgs);
+        setChatSummaries([]);
+        localStorage.setItem('finance_ai_active', JSON.stringify(activeMsgs));
+        localStorage.removeItem('finance_ai_summaries');
+
         // Load the last state if available
         const lastAiMessage = [...history].reverse().find(m => m.role === 'assistant' && (m.tableData || m.chartData || m.reportData || m.dashboardData));
         if (lastAiMessage) {
@@ -191,6 +207,10 @@ export default function ChatBot() {
         }
       } else {
         setMessages([{ role: 'assistant', content: "Welcome back! How can I help you in this chat?" }]);
+        setChatSummaries([]);
+        setActiveMessages([]);
+        localStorage.removeItem('finance_ai_summaries');
+        localStorage.removeItem('finance_ai_active');
       }
     } catch (error) {
       console.error("Error opening chat:", error);
