@@ -98,51 +98,21 @@ export default function LoginPage() {
         justifyContent: "center",
         minHeight: "100vh",
         width: "100vw",
-        background: "linear-gradient(135deg, #1E293B 0%, #0F172A 100%)",
+        bgcolor: "#f8fafc",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Decorative Blur Spheres */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "-10%",
-          left: "-10%",
-          width: "400px",
-          height: "400px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(33, 125, 240, 0.15) 0%, rgba(33, 125, 240, 0) 70%)",
-          filter: "blur(40px)",
-          pointerEvents: "none",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-10%",
-          right: "-10%",
-          width: "500px",
-          height: "500px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(167, 225, 250, 0.1) 0%, rgba(167, 225, 250, 0) 70%)",
-          filter: "blur(60px)",
-          pointerEvents: "none",
-        }}
-      />
-
       <Card
         sx={{
           width: "100%",
           maxWidth: 440,
           mx: 2,
-          background: "rgba(255, 255, 255, 0.05)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
           borderRadius: 4,
-          color: "#fff",
+          color: "#0f172a",
         }}
       >
         <CardContent sx={{ p: 4 }}>
@@ -153,26 +123,25 @@ export default function LoginPage() {
               fontWeight={700}
               sx={{
                 mb: 1,
-                background: "linear-gradient(90deg, #A7E1FA 0%, #217DF0 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "#0f172a",
+                letterSpacing: "-0.025em",
               }}
             >
-              AI Assistant
+              BP Convenience
             </Typography>
-            <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
+            <Typography variant="body2" sx={{ color: "#64748b" }}>
               Please sign in to access your dashboard
             </Typography>
           </Box>
 
           {/* Feedback alerts */}
           {error && (
-            <Alert severity="error" sx={{ mb: 3, bgcolor: "rgba(239, 68, 68, 0.1)", color: "#fca5a5" }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
               {error}
             </Alert>
           )}
           {success && (
-            <Alert severity="success" sx={{ mb: 3, bgcolor: "rgba(34, 197, 94, 0.1)", color: "#86efac" }}>
+            <Alert severity="success" sx={{ mb: 3 }}>
               {success}
             </Alert>
           )}
@@ -188,21 +157,23 @@ export default function LoginPage() {
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root": {
-                  color: "#fff",
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.2)" },
-                  "&:hover fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+                  color: "#0f172a",
+                  bgcolor: "#f8fafc",
+                  borderRadius: "10px",
+                  "& fieldset": { borderColor: "#e2e8f0" },
+                  "&:hover fieldset": { borderColor: "#cbd5e1" },
                   "&.Mui-focused fieldset": { borderColor: "#217DF0" },
                 },
-                "& .MuiInputLabel-root": { color: "rgba(255, 255, 255, 0.6)" },
+                "& .MuiInputLabel-root": { color: "#64748b" },
                 "& .MuiInputLabel-root.Mui-focused": { color: "#217DF0" },
                 "& input": {
-                  WebkitTextFillColor: "#fff !important",
-                  color: "#fff !important",
-                },
+                  color: "#0f172a !important",
+                  WebkitTextFillColor: "#0f172a !important",
+                }
               }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                  <InputAdornment position="start" sx={{ color: "#64748b" }}>
                     <EmailOutlined />
                   </InputAdornment>
                 ),
@@ -219,21 +190,23 @@ export default function LoginPage() {
               sx={{
                 mb: 3,
                 "& .MuiOutlinedInput-root": {
-                  color: "#fff",
-                  "& fieldset": { borderColor: "rgba(255, 255, 255, 0.2)" },
-                  "&:hover fieldset": { borderColor: "rgba(255, 255, 255, 0.4)" },
+                  color: "#0f172a",
+                  bgcolor: "#f8fafc",
+                  borderRadius: "10px",
+                  "& fieldset": { borderColor: "#e2e8f0" },
+                  "&:hover fieldset": { borderColor: "#cbd5e1" },
                   "&.Mui-focused fieldset": { borderColor: "#217DF0" },
                 },
-                "& .MuiInputLabel-root": { color: "rgba(255, 255, 255, 0.6)" },
+                "& .MuiInputLabel-root": { color: "#64748b" },
                 "& .MuiInputLabel-root.Mui-focused": { color: "#217DF0" },
                 "& input": {
-                  WebkitTextFillColor: "#fff !important",
-                  color: "#fff !important",
-                },
+                  color: "#0f172a !important",
+                  WebkitTextFillColor: "#0f172a !important",
+                }
               }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                  <InputAdornment position="start" sx={{ color: "#64748b" }}>
                     <LockOutlined />
                   </InputAdornment>
                 ),
@@ -242,7 +215,7 @@ export default function LoginPage() {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
-                      sx={{ color: "rgba(255, 255, 255, 0.6)" }}
+                      sx={{ color: "#64748b" }}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -258,14 +231,15 @@ export default function LoginPage() {
               disabled={loading}
               sx={{
                 py: 1.5,
-                background: "linear-gradient(90deg, #217DF0 0%, #0F172A 180%)",
-                boxShadow: "0 4px 14px rgba(33, 125, 240, 0.4)",
+                background: "#0f172a",
+                boxShadow: "none",
                 "&:hover": {
-                  background: "linear-gradient(90deg, #1e70d6 0%, #0F172A 180%)",
+                  background: "#1e293b",
                 },
                 fontWeight: 600,
                 fontSize: "14px",
-                borderRadius: 2,
+                borderRadius: "10px",
+                textTransform: "none",
               }}
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
@@ -273,17 +247,17 @@ export default function LoginPage() {
           </Box>
 
           <Box sx={{ mt: 3, textAlign: "center" }}>
-            <Typography variant="body2" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
+            <Typography variant="body2" sx={{ color: "#475569" }}>
               Don&apos;t have an account?{" "}
               <Button
                 onClick={() => router.push("/signup")}
                 sx={{
-                  color: "#A7E1FA",
+                  color: "#217DF0",
                   textTransform: "none",
                   fontWeight: 600,
                   p: 0,
                   minWidth: "auto",
-                  "&:hover": { color: "#217DF0" },
+                  "&:hover": { color: "#1e70d6" },
                 }}
               >
                 Create Account
