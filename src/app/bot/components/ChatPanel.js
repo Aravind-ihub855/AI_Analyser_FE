@@ -248,14 +248,12 @@ const ChatPanel = ({
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', letterSpacing: '0.025em', fontSize: '12px' }}>
-              {currentUser?.role === 'store manager' ? 'BP STORE MANAGER AI COPILOT' : 
-               currentUser?.role === 'vendor manager' ? 'BP VENDOR MANAGER AI COPILOT' : 
-               'BP AI COPILOT'}
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a', letterSpacing: '-0.01em', fontSize: '13px' }}>
+              AI Assistant
             </Typography>
             {currentUser?.name && (
               <Typography sx={{ fontSize: '10px', color: '#64748b', fontWeight: 500 }}>
-                {currentUser.name}
+                {currentUser.name} ({currentUser.role})
               </Typography>
             )}
           </Box>

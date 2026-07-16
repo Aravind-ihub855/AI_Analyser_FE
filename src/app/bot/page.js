@@ -27,7 +27,7 @@ export default function ChatBot() {
     };
   }, []);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "Hello, Store Manager! I'm your BP Store Manager AI Copilot. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" }
+    { role: 'assistant', content: "Hello, Store Manager! I'm your AI Assistant. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -144,7 +144,7 @@ export default function ChatBot() {
 
       setMessages([{ 
         role: 'assistant', 
-        content: "Hello, Store Manager! I'm your BP Store Manager AI Copilot. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" 
+        content: "Hello, Store Manager! I'm your AI Assistant. I can help you monitor inventory, track supplier delays, search standard operating procedures (SOPs), check live freezer temperatures, and place auto-reorders in real time. How can I assist you today?" 
       }]);
 
       // Refresh chat list (without selecting latest again to prevent loops)
